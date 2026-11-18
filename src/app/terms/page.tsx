@@ -67,6 +67,23 @@ export default function TermsPage() {
         <li>interfere with, overload, reverse-engineer or gain unauthorized access to the service.</li>
       </ul>
 
+      <h2>No spam</h2>
+      <p>
+        {APP_NAME} is for sharing your own original content on your own schedule. You agree not to use it for spam or manipulation.
+        In particular, you may not:
+      </p>
+      <ul>
+        <li>post the same or near-identical video repeatedly, or flood an account with repetitive or low-effort content;</li>
+        <li>use {APP_NAME} to buy, sell, trade or generate fake followers, likes, views, comments or other engagement;</li>
+        <li>post misleading, deceptive or irrelevant content, or use captions and hashtags to mislead viewers;</li>
+        <li>post in bulk to many accounts you don&apos;t own or aren&apos;t authorized to manage;</li>
+        <li>work around TikTok&apos;s rate limits, posting limits or content rules.</li>
+      </ul>
+      <p>
+        We may limit, hold or remove scheduled posts and suspend accounts that we reasonably believe break these rules or TikTok&apos;s
+        Community Guidelines.
+      </p>
+
       <h2>Suspension and termination</h2>
       <p>
         We may suspend or close accounts that violate these terms or put the service, other users or TikTok&apos;s platform at
