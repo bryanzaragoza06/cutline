@@ -21,7 +21,7 @@ export default function PostsPage() {
       <div>
         <h1 className="text-2xl font-semibold">Post to TikTok</h1>
         <p className="mt-1 max-w-2xl text-sm text-black/60 dark:text-white/60">
-          Upload a video, then post it to one of your connected TikTok accounts right now, or schedule it for later. You choose who can
+          Add your videos, then post each one to a connected TikTok account right now, or schedule it for later. You choose who can
           watch it and which interactions are allowed, and nothing is posted until you confirm.
         </p>
       </div>
@@ -39,11 +39,11 @@ export default function PostsPage() {
       <UploadVideo onUploaded={(post) => setPosts((prev) => [post, ...(prev ?? [])])} />
 
       <section className="space-y-4">
-        <h2 className="font-medium">2. Post it or schedule it</h2>
+        <h2 className="font-medium">2. Your videos — post now or schedule</h2>
         {posts === null ? (
           <p className="text-sm text-black/50 dark:text-white/50">Loading…</p>
         ) : posts.length === 0 ? (
-          <p className={`${card} p-5 text-sm text-black/50 dark:text-white/50`}>No videos yet — upload one above.</p>
+          <p className={`${card} p-5 text-sm text-black/50 dark:text-white/50`}>No videos yet — drop some in above.</p>
         ) : (
           posts.map((post) => (
             <PostCard
