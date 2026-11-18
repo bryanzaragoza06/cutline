@@ -1,0 +1,44 @@
+@import "tailwindcss";
+
+/* Baby blue theme. "black" is redefined as deep navy so every text/border
+   utility (text-black/60, border-black/10, …) picks up the blue tint. */
+:root {
+  --background: #eef7fd;
+  --foreground: #12324a;
+  --surface: #ffffff;
+  --baby: #89cff0;
+  --baby-strong: #5bb8e8;
+  --baby-soft: #dcf0fb;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a1824;
+    --foreground: #e2f1fb;
+    --surface: #10263a;
+    --baby-soft: #16354d;
+  }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-baby: var(--baby);
+  --color-baby-strong: var(--baby-strong);
+  --color-baby-soft: var(--baby-soft);
+  --color-black: #12324a;
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+button:not(:disabled),
+[role="button"]:not(:disabled) {
+  cursor: pointer;
+}

@@ -1,0 +1,25 @@
+# dependencies
+/node_modules
+
+# next.js
+/.next
+/out
+next-env.d.ts
+*.tsbuildinfo
+
+# env files
+.env*
+
+# local data: SQLite DB, uploads, generated videos
+/storage
+
+# media
+*.mp4
+*.mov
+*.gif
+
+# misc
+.DS_Store
+*.log
+.claude/
+!.env.example

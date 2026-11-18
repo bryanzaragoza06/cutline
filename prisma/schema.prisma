@@ -1,0 +1,358 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String       @id @default(cuid())
+  email        String       @unique
+  passwordHash String
+  createdAt    DateTime     @default(now())
+  accounts     Account[]
+  buckets      Bucket[]
+  videoStyles  VideoStyle[]
+  libraryItems LibraryItem[]
+  postingSchedules PostingSchedule[]
+}
+
+model Account {
+  id             String     @id @default(cuid())
+  userId         String
+  user           User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  handle         String
+  displayName    String
+  avatarColor    String     @default("#f43f5e")
+  openId         String?    @unique
+  accessToken    String?
+  refreshToken   String?
+  tokenExpiresAt DateTime?
+  scope          String?
+  // Manually pasted by the user — TikTok's basic OAuth scope only exposes a
+  // display name, not the real @handle, so there's no reliable way to derive
+  // this automatically.
+  profileUrl     String?
+  connectedAt    DateTime   @default(now())
+  schedules      Schedule[]
+
+  // Automation — a self-contained posting cycle per account. First post fires
+  // immediately when startMode is "NOW", at startTimeOfDay (Pacific "HH:MM")
+  // when "AT_TIME", or 26 hours after the account was switched on when
+  // "COOK" (activatedAt + 26h). After that, posts repeat every
+  // repostIntervalMinutes until cyclePostCount reaches cycleLimit, then the
+  // account rests for breakMinutes before the next cycle's first post.
+  startMode             String      @default("NOW") // "NOW" | "AT_TIME" | "COOK"
+  startTimeOfDay        String? // Pacific "HH:MM", used when startMode = "AT_TIME"
+  activatedAt           DateTime? // stamped whenever `active` flips false -> true; used by "COOK"
+  repostIntervalMinutes Int?
+  cycleLimit            Int?
+  breakMinutes          Int?
+  cyclePostCount        Int         @default(0)
+  // Aspect ratio of this account's automated posts — independent of which
+  // style(s) it pulls from, so one style can feed portrait to one account
+  // and landscape to another.
+  layout                VideoLayout @default(LANDSCAPE_16_9)
+
+  active          Boolean            @default(false)
+  generating      Boolean            @default(false)
+  generatingSince DateTime?
+  lastPostedAt    DateTime?
+  lastError       String?
+  styleLinks      AccountStyleLink[]
+
+  // The master posting schedule this account follows (Schedules page). When
+  // set, its repost / cycle limit / break settings are used instead of the
+  // per-account fields above; start mode/time always come from the account. Per-account progress (lastPostedAt,
+  // cyclePostCount, activatedAt) stays on the account.
+  postingScheduleId String?
+  postingSchedule   PostingSchedule? @relation(fields: [postingScheduleId], references: [id], onDelete: SetNull)
+
+  // Post settings for automated posts, chosen by the user from TikTok's live
+  // creator options, plus when they consented to automated posting. Required
+  // before automation can be switched on.
+  autoPrivacyLevel String?
+  autoAllowComment Boolean   @default(false)
+  autoAllowDuet    Boolean   @default(false)
+  autoAllowStitch  Boolean   @default(false)
+  autoBrandOrganic Boolean   @default(false)
+  autoBrandContent Boolean   @default(false)
+  autoConsentAt    DateTime?
+}
+
+model Bucket {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  color       String   @default("#6366f1")
+  createdAt   DateTime @default(now())
+  posts       Post[]
+}
+
+// Which video templates an account may pull from — one is picked at random
+// each time it's due to post.
+model AccountStyleLink {
+  id        String     @id @default(cuid())
+  accountId String
+  account   Account    @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  styleId   String
+  style     VideoStyle @relation(fields: [styleId], references: [id], onDelete: Cascade)
+  createdAt DateTime   @default(now())
+
+  @@unique([accountId, styleId])
+}
+
+enum PostStatus {
+  DRAFT
+  SCHEDULED
+  PARTIALLY_POSTED
+  POSTED
+  FAILED
+}
+
+model Post {
+  id             String          @id @default(cuid())
+  bucketId       String
+  bucket         Bucket          @relation(fields: [bucketId], references: [id], onDelete: Cascade)
+  caption        String
+  // What's sent to TikTok as the post title — separate from `caption` (which
+  // is display text / the on-screen overlay text). Null = "post with no
+  // title". Posts generated from a video template default to null; the manual
+  // review screen always sends an explicit title.
+  title          String?
+  mediaNote      String?
+  videoUrl       String?
+  // Real length of the video in seconds (read with ffprobe on upload); checked
+  // against the creator's TikTok limit. Null on older generated posts = 12s.
+  durationSec    Float?
+  // "UPLOAD" = a creator's own video (Phase 1). "GENERATED" = made by the
+  // generator at posting time (Phase 2).
+  source         String          @default("UPLOAD")
+  status         PostStatus      @default(DRAFT)
+  createdAt      DateTime        @default(now())
+  schedules      Schedule[]
+  generatedVideo GeneratedVideo?
+}
+
+enum ScheduleStatus {
+  PENDING
+  PROCESSING
+  POSTED
+  FAILED
+}
+
+model Schedule {
+  id          String         @id @default(cuid())
+  postId      String
+  post        Post           @relation(fields: [postId], references: [id], onDelete: Cascade)
+  accountId   String
+  account     Account        @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  scheduledAt DateTime
+  status      ScheduleStatus @default(PENDING)
+  claimedAt   DateTime?
+  postedAt    DateTime?
+  error       String?
+  // Set once the video has been uploaded to TikTok and is processing there —
+  // status stays PROCESSING until a later tick confirms PUBLISH_COMPLETE via
+  // TikTok's publish-status API.
+  publishId   String?
+
+  // TikTok post settings the user explicitly chose for this post (review
+  // screen, scheduler, or the account's saved automation settings). Nothing is
+  // ever defaulted — publishing fails without a privacyLevel.
+  title        String?
+  privacyLevel String?
+  allowComment Boolean   @default(false)
+  allowDuet    Boolean   @default(false)
+  allowStitch  Boolean   @default(false)
+  brandOrganic Boolean   @default(false)
+  brandContent Boolean   @default(false)
+  consentAt    DateTime?
+  // Created by the posting-cycle automation. Automated posts are published
+  // Public with all interactions on; if the account can't post Public yet
+  // (e.g. unaudited app), they fall back to Only me. Manual posts never fall back.
+  automated    Boolean   @default(false)
+}
+
+enum VideoStyleKind {
+  AESTHETIC_SLIDESHOW
+  VIDEO_COMPILATION
+}
+
+// PORTRAIT_9_16: 1080x1920 frame, a 4:3 picture centered with black bars
+// above/below (song label sits in the bottom bar). LANDSCAPE_16_9: 1920x1080,
+// the picture fills the whole frame (song label overlaid on it).
+enum VideoLayout {
+  PORTRAIT_9_16
+  LANDSCAPE_16_9
+}
+
+model VideoStyle {
+  id              String             @id @default(cuid())
+  userId          String
+  user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name            String
+  description     String?
+  kind            VideoStyleKind
+  defaultBucketId String?
+  // How long each image/clip is fully on screen before it starts fading.
+  secondsPerImage Float              @default(1.65)
+  // How long each fade into the next image/clip lasts (0.01–1.0s).
+  crossfadeSec    Float              @default(0.3)
+  // "Titles" settings — the title is the chosen audio track's label.
+  // titleOnScreen: print it on the video. titleAsCaption: use it as the
+  // TikTok post's caption (Post.title) for videos generated from this style.
+  titleOnScreen   Boolean            @default(true)
+  titleAsCaption  Boolean            @default(false)
+  createdAt       DateTime           @default(now())
+  images          StyleImage[]
+  videoClips      StyleVideo[]
+  audioClips      StyleAudio[]
+  captions        StyleCaption[]
+  generatedVideos GeneratedVideo[]
+  accountLinks    AccountStyleLink[]
+}
+
+model StyleImage {
+  id           String     @id @default(cuid())
+  videoStyleId String
+  videoStyle   VideoStyle @relation(fields: [videoStyleId], references: [id], onDelete: Cascade)
+  url          String
+  createdAt    DateTime   @default(now())
+  // Set when this template item came from (or was uploaded into) the media
+  // library. The file belongs to the library item; removing it from a template
+  // only deletes this row. Deleting the library item removes it everywhere.
+  libraryItemId String?
+  libraryItem   LibraryItem? @relation(fields: [libraryItemId], references: [id], onDelete: Cascade)
+}
+
+model StyleVideo {
+  id           String     @id @default(cuid())
+  videoStyleId String
+  videoStyle   VideoStyle @relation(fields: [videoStyleId], references: [id], onDelete: Cascade)
+  url          String
+  durationSec  Float
+  createdAt    DateTime   @default(now())
+  // Set when this template item came from (or was uploaded into) the media
+  // library. The file belongs to the library item; removing it from a template
+  // only deletes this row. Deleting the library item removes it everywhere.
+  libraryItemId String?
+  libraryItem   LibraryItem? @relation(fields: [libraryItemId], references: [id], onDelete: Cascade)
+}
+
+model StyleAudio {
+  id           String     @id @default(cuid())
+  videoStyleId String
+  videoStyle   VideoStyle @relation(fields: [videoStyleId], references: [id], onDelete: Cascade)
+  url          String
+  filename     String
+  durationSec  Float
+  // Editable on-screen song label, shown exactly as typed; falls back to filename.
+  postCaption  String?
+  createdAt    DateTime   @default(now())
+  // Set when this template item came from (or was uploaded into) the media
+  // library. The file belongs to the library item; removing it from a template
+  // only deletes this row. Deleting the library item removes it everywhere.
+  libraryItemId String?
+  libraryItem   LibraryItem? @relation(fields: [libraryItemId], references: [id], onDelete: Cascade)
+}
+
+model StyleCaption {
+  id           String     @id @default(cuid())
+  videoStyleId String
+  videoStyle   VideoStyle @relation(fields: [videoStyleId], references: [id], onDelete: Cascade)
+  text         String
+  createdAt    DateTime   @default(now())
+  // Set when this template item came from (or was uploaded into) the media
+  // library. The file belongs to the library item; removing it from a template
+  // only deletes this row. Deleting the library item removes it everywhere.
+  libraryItemId String?
+  libraryItem   LibraryItem? @relation(fields: [libraryItemId], references: [id], onDelete: Cascade)
+}
+
+// A named, reusable posting frequency (repost interval, cycle limit, break)
+// that many accounts can follow. When an account starts (Now / At time /
+// Cook) stays per account.
+model PostingSchedule {
+  id                    String    @id @default(cuid())
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name                  String
+  repostIntervalMinutes Int?
+  cycleLimit            Int?
+  breakMinutes          Int?
+  createdAt             DateTime  @default(now())
+  accounts              Account[]
+}
+
+enum LibraryKind {
+  IMAGE
+  VIDEO
+  AUDIO
+  CAPTION
+}
+
+// A user's media library: every uploaded image, clip and audio file, plus
+// saved captions. Templates reference these via the Style* rows.
+model LibraryItem {
+  id          String         @id @default(cuid())
+  userId      String
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind        LibraryKind
+  url         String? // IMAGE / VIDEO / AUDIO
+  filename    String? // original upload name
+  durationSec Float? // VIDEO / AUDIO
+  // CAPTION: the caption text. AUDIO: the default on-screen label (copied into
+  // a template when the track is added; each template can edit its own).
+  text        String?
+  // AUDIO: chosen 12-second clip start times (JSON array of seconds). The
+  // generator picks one at random; empty = a random 12 seconds of the song.
+  clipStarts  String         @default("[]")
+  // AUDIO: cached waveform peaks (JSON array of 0–100 values) for the editor.
+  waveform    String?
+  // VIDEO: SHA-256 of the uploaded file, used to skip duplicate uploads.
+  contentHash String?
+  createdAt   DateTime       @default(now())
+  images      StyleImage[]
+  videos      StyleVideo[]
+  audios      StyleAudio[]
+  captions    StyleCaption[]
+
+  @@index([userId, kind])
+  @@index([userId, contentHash])
+}
+
+enum GeneratedVideoStatus {
+  GENERATING
+  READY
+  FAILED
+}
+
+model GeneratedVideo {
+  id           String               @id @default(cuid())
+  videoStyleId String
+  videoStyle   VideoStyle           @relation(fields: [videoStyleId], references: [id], onDelete: Cascade)
+  status       GeneratedVideoStatus @default(GENERATING)
+  url          String?
+  error        String?
+  postId       String?              @unique
+  post         Post?                @relation(fields: [postId], references: [id], onDelete: SetNull)
+  createdAt    DateTime             @default(now())
+  // Phase 2: what went into this video (which clips, song, start time, caption)
+  // as JSON, plus a hash of it. If a new render's hash matches one already
+  // posted to the same account, it is re-rolled so an account never posts a repeat.
+  recipeJson   String?
+  recipeHash   String?
+
+  @@index([recipeHash])
+}
+
+// System-wide mutex: only one ffmpeg generation may run at a time.
+model GenerationLock {
+  id       String    @id @default("singleton")
+  lockedAt DateTime?
+}
