@@ -13,6 +13,12 @@ import { AccountPicker } from "@/components/PublishNowPanel";
  * from the account's live TikTok options, and saved with the schedule — so
  * nothing is defaulted when it publishes later.
  */
+const PRESETS: { label: string; minutes: number }[] = [
+  { label: "In 1 minute", minutes: 1 },
+  { label: "In 4 hours", minutes: 4 * 60 },
+  { label: "In 26 hours", minutes: 26 * 60 },
+];
+
 export default function Scheduler({
   post,
   accounts,
@@ -69,6 +75,20 @@ export default function Scheduler({
             className={`${input} w-auto`}
           />
         </div>
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-xs text-black/50 dark:text-white/50">Quick pick:</span>
+        {PRESETS.map((preset) => (
+          <button
+            key={preset.label}
+            type="button"
+            onClick={() => setWhen(toDateTimeLocalValue(new Date(Date.now() + preset.minutes * 60 * 1000)))}
+            className={`${secondaryButton} px-3 py-1 text-xs`}
+          >
+            {preset.label}
+          </button>
+        ))}
+        <span className="text-xs text-black/50 dark:text-white/50">To post right away, use &ldquo;Post now&rdquo; instead.</span>
       </div>
       {!whenValid && <p className="text-xs text-red-600 dark:text-red-400">Pick a time in the future.</p>}
       {accountId ? (
