@@ -14,8 +14,7 @@ import { AccountPicker } from "@/components/PublishNowPanel";
  * nothing is defaulted when it publishes later.
  */
 const PRESETS: { label: string; minutes: number }[] = [
-  { label: "In 1 minute", minutes: 1 },
-  { label: "In 4 hours", minutes: 4 * 60 },
+  { label: "In 4 hours 1 minute", minutes: 4 * 60 + 1 },
   { label: "In 26 hours", minutes: 26 * 60 },
 ];
 
