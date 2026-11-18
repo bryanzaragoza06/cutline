@@ -8,6 +8,7 @@ import { APP_NAME } from "@/lib/site";
 const LINKS = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/posts", label: "Post to TikTok" },
+  { href: "/schedule", label: "Schedule" },
   { href: "/accounts", label: "Accounts" },
 ];
 
