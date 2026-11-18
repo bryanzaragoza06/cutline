@@ -180,6 +180,12 @@ export default function PostSettingsForm({
             );
           })}
         </select>
+        {creator.privacy_level_options.length > 0 && !creator.privacy_level_options.some((o) => o !== "SELF_ONLY") && (
+          <p className="mt-1 text-xs text-black/60 dark:text-white/60">
+            TikTok currently only allows private (&ldquo;Only me&rdquo;) posts for this app. Public posting becomes available once TikTok
+            completes its audit of the app.
+          </p>
+        )}
         {!privacyStillOffered && (
           <p className="mt-1 text-xs text-red-600 dark:text-red-400">
             Your previous choice is no longer available for this account — choose again.

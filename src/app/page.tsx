@@ -56,11 +56,11 @@ export default async function HomePage() {
           {APP_NAME}
         </span>
         <nav className="flex items-center gap-2 text-sm">
-          <Link href="/terms" className="hidden px-2 hover:underline sm:inline">
-            Terms
+          <Link href="/how-it-works" className="hidden px-2 hover:underline sm:inline">
+            How it works
           </Link>
-          <Link href="/privacy" className="hidden px-2 hover:underline sm:inline">
-            Privacy
+          <Link href="/faq" className="hidden px-2 hover:underline sm:inline">
+            FAQ
           </Link>
           <Link href="/login" className={secondaryButton}>
             Log in
