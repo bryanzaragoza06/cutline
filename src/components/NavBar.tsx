@@ -45,7 +45,11 @@ export default function NavBar({ email }: { email: string }) {
           </Link>
           <button
             type="button"
-            onClick={() => signOut({ callbackUrl: "/login" })}
+            onClick={async () => {
+              // redirect:false so the browser (not the server's internal host) decides where to go
+              await signOut({ redirect: false });
+              window.location.href = "/";
+            }}
             className="rounded-lg border border-black/15 px-3 py-1 text-sm hover:bg-black/5 dark:border-white/15 dark:hover:bg-white/10"
           >
             Sign out

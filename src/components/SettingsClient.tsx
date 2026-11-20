@@ -27,7 +27,8 @@ export default function SettingsClient({ email }: { email: string }) {
       setError(data.error ?? "Couldn't delete your account");
       return;
     }
-    await signOut({ callbackUrl: "/" });
+    await signOut({ redirect: false });
+    window.location.href = "/";
   }
 
   return (
