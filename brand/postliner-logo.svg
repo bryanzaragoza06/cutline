@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Postliner logo">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2563eb"/>
+      <stop offset="1" stop-color="#0b1f5c"/>
+    </linearGradient>
+    <!-- the two halves of the P, split along a diagonal cut line -->
+    <clipPath id="upper"><polygon points="0,0 462,0 50,512 0,512"/></clipPath>
+    <clipPath id="lower"><polygon points="462,0 512,0 512,512 50,512"/></clipPath>
+    <path id="p" d="M 190 400 L 190 112 L 276 112 A 80 80 0 0 1 276 272 L 190 272" fill="none" stroke-width="56" stroke-linecap="round" stroke-linejoin="round" transform="translate(-17 0)"/>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <g clip-path="url(#upper)"><use href="#p" stroke="#ffffff" transform="translate(2.5 -17)"/></g>
+  <g clip-path="url(#lower)"><use href="#p" stroke="#7dd3fc" transform="translate(-2.5 17)"/></g>
+</svg>

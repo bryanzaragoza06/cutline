@@ -45,7 +45,7 @@ export async function GET(req: NextRequest) {
     const token = await exchangeCodeForToken(code);
     const user = await fetchUserInfo(token.access_token);
     const tokenData = tokenColumns(token); // tokens are encrypted before they are stored
-    // If this TikTok account was connected under a different Cutline login, whoever just proved
+    // If this TikTok account was connected under a different Postliner login, whoever just proved
     // control of it on TikTok takes it over — and the previous owner's scheduled posts are dropped.
     const existing = await prisma.account.findUnique({ where: { openId: user.open_id }, select: { id: true, userId: true } });
     if (existing && existing.userId !== userId) {

@@ -1,6 +1,6 @@
-# Cutline
+# Postliner
 
-Cutline is a web app for TikTok creators: sign up with email + password, connect your TikTok account(s) through TikTok's official Login Kit, upload a video, and publish it with the Content Posting API (Direct Post) now or on a schedule.
+Postliner is a web app for TikTok creators: sign up with email + password, connect your TikTok account(s) through TikTok's official Login Kit, upload a video, and publish it with the Content Posting API (Direct Post) now or on a schedule.
 
 - Public homepage, Terms (`/terms`) and Privacy Policy (`/privacy`)
 - Scopes used: `user.info.basic`, `video.publish`
@@ -47,7 +47,7 @@ Keep it at one replica: SQLite and the in-process scheduler assume a single inst
 3. Redirect URI: `https://<your-domain>/api/auth/tiktok/callback`.
 4. Website URL: your Railway URL. Terms URL `/terms`, Privacy URL `/privacy`.
 5. Verify the URL: TikTok gives you a signature file (`tiktokXXXX.txt`). Put it in `public/`, push, redeploy, then click Verify. (Free shared Railway subdomains may or may not be accepted; if the portal refuses, a custom domain is the fix.)
-6. App icon: `brand/cutline-app-icon-1024.png`.
+6. App icon: `brand/postliner-app-icon-1024.png`.
 7. Add your own TikTok account as a sandbox **target user** to test.
 8. Record the demo video on the same domain as the website URL: sign up → connect TikTok → upload → choose settings → post. Give reviewers a demo login.
 

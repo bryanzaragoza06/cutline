@@ -8,7 +8,7 @@ import StatusBadge from "@/components/StatusBadge";
 import CancelScheduleButton from "@/components/CancelScheduleButton";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Schedule · Cutline" };
+export const metadata = { title: "Schedule · Postliner" };
 
 export default async function SchedulePage() {
   const session = await auth();

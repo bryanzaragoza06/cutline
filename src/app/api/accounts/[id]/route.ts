@@ -6,7 +6,7 @@ import { revokeAccess } from "@/lib/tiktok";
 
 type Params = { params: Promise<{ id: string }> };
 
-// Disconnects a TikTok account: revokes Cutline's access at TikTok, then deletes
+// Disconnects a TikTok account: revokes Postliner's access at TikTok, then deletes
 // the stored tokens and any scheduled posts for it.
 export async function DELETE(_req: Request, { params }: Params) {
   const auth = await requireUserId();
