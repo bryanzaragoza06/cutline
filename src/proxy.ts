@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 
-const PUBLIC_PAGES = new Set(["/", "/login", "/signup", "/privacy", "/terms", "/favicon.ico", "/api/signup"]);
+const PUBLIC_PAGES = new Set(["/", "/login", "/signup", "/privacy", "/terms", "/how-it-works", "/faq", "/favicon.ico", "/api/signup"]);
 
 function isPublic(pathname: string): boolean {
   if (PUBLIC_PAGES.has(pathname)) return true;
